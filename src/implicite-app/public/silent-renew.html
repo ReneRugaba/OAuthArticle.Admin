@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Renewing Session...</title>
+    <script src="https://unpkg.com/oidc-client/dist/oidc-client.min.js"></script>
+    <script>
+      const mgr = new Oidc.UserManager({
+        authority: 'https://localhost:5001',
+        client_id: 'client_id_implicit',
+        redirect_uri: window.location.origin + '/callback',
+        response_type: 'token id_token',
+        scope: 'openid profile rewardsApi.read',
+      });
+
+      mgr.signinSilentCallback().then(function (user) {
+        window.location.reload();
+      }).catch(function (e) {
+        console.error(e);
+      });
+    </script>
+  </head>
+  <body>
+    <h1>Renouvellement de la session...</h1>
+  </body>
+</html>
