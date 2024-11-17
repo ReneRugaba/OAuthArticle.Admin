@@ -1,0 +1,133 @@
+﻿@page "/"
+@using ClientCodeApp.exemple.Data
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Authentication.Cookies
+@using Microsoft.AspNetCore.Http
+@using System.Net.Http.Headers
+@using System.Text.Json
+@inject IHttpContextAccessor HttpContextAccessor
+
+<PageTitle>Index</PageTitle>
+
+@* <p>JWT Token: @jwtToken</p> *@
+
+<div>
+    <h1>Code client app</h1>
+    <p>Welcome.</p>
+    <div>
+        <button onclick="@AuthenticateUser">Get Access token / refresh token </button>
+        <button onclick="@RequestApi">request api</button>
+        <div>
+            <p>Response:</p>
+            @if (_codeClientVm is not null)
+            {
+                <pre>
+                        Token: @_codeClientVm.Token
+                    </pre>
+
+                <pre>
+                    @* result after requested api *@
+                        Api result: @(_codeClientVm.ApiResult ?? string.Empty)
+                    </pre>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private string jwtToken = string.Empty;
+    private CodeClientVm? _codeClientVm;
+
+    protected override void OnInitialized()
+    {
+        _codeClientVm = new();
+    }
+
+    private async void AuthenticateUser()
+    {
+        var authenticateResult = HttpContextAccessor?.HttpContext?.AuthenticateAsync().Result;
+
+        if (authenticateResult is { Succeeded: true } && _codeClientVm is not null)
+        {
+            _codeClientVm.Token = authenticateResult.Properties.GetTokenValue("access_token") ?? string.Empty;
+        }
+        else
+        {
+            // If not authenticated, redirect to the login page
+            await HttpContextAccessor.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            await HttpContextAccessor.HttpContext.SignOutAsync("OAuth2");
+        }
+    }
+
+    private async Task RequestApi()
+    {
+        if (_codeClientVm is null)
+            return;
+
+        // Valide le token via l'endpoint d'introspection
+        var isValid = await ValidateReferenceToken(_codeClientVm.Token);
+
+        if (!isValid)
+        {
+            _codeClientVm.ApiResult = "Token invalide ou expiré.";
+            return;
+        }
+
+        // Si le token est valide, continue avec la requête API
+        var client = new HttpClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _codeClientVm.Token);
+
+        var response = await client.GetAsync("https://localhost:7019/api/Rewards");
+
+        if (response.IsSuccessStatusCode)
+        {
+            var content = await response.Content.ReadAsStringAsync();
+            _codeClientVm.ApiResult = content;
+        }
+        else
+        {
+            _codeClientVm.ApiResult = response.ReasonPhrase ?? string.Empty;
+        }
+    }
+
+
+    private async Task<bool> ValidateReferenceToken(string token)
+    {
+        // Configuration de l'HTTP client
+        var client = new HttpClient();
+
+        // Endpoint d'introspection
+        var introspectionEndpoint = "https://localhost:44310/connect/introspect";
+
+        // Creation du contenu de la requête
+        var requestContent = new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            { "token", token },
+            { "client_id", "client_id_codeflow" },
+            { "client_secret", "client_secret_codeflow" }
+        });
+
+        // Envoi de la requête POST à l'endpoint d'introspection
+        var response = await client.PostAsync(introspectionEndpoint, requestContent);
+
+        if (response.IsSuccessStatusCode)
+        {
+            // Lecture du contenu de la réponse
+            var content = await response.Content.ReadAsStringAsync();
+            var jsonOptions = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                };
+            var tokenInfo = JsonSerializer.Deserialize<TokenIntrospectionResponse>(content, jsonOptions);
+
+            // verification du statut du token
+            return tokenInfo?.Active ?? false;
+        }
+        else
+        {
+            // En cas d'erreur, retourne false
+            return false;
+        }
+    }
+
+}

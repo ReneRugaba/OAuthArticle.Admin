@@ -1,0 +1,6 @@
+@RewardsApi.exemple_HostAddress = http://localhost:5082
+
+GET {{RewardsApi.exemple_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
