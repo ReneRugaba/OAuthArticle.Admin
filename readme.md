@@ -280,12 +280,127 @@ export default userManager;
 
 ---
 
-#### Key Considerations for Implicit Flow:
-1. **Security**: The Implicit Flow is considered less secure than Authorization Code Flow because tokens are exposed in the browser's address bar. Consider using **PKCE** (Proof Key for Code Exchange) if possible.
-2. **Browser-Specific Implementation**: Silent token renewal may require specific settings (e.g., third-party cookies enabled).
-
 > **⚠️ Warning:** The Implicit Flow is generally considered less secure than the Authorization Code Flow with PKCE. Tokens are exposed in the browser's address bar, making them vulnerable to interception. It is recommended to use the Authorization Code Flow with PKCE for enhanced security whenever possible.
 
+Here is the addition to the **README.md** to include the **Client Credentials Flow** based on the provided information:
+
+---
+
+### Client Credentials Flow
+
+The **Client Credentials Flow** is used by applications to authenticate themselves to the IdentityServer without user involvement. This flow is suitable for machine-to-machine communication, such as backend services or daemons.
+
+1. **Create a client application**:
+   - Navigate to the **Admin UI** and create a new client.
+   - Assign a unique **Client ID** (e.g., `client_id_demon`) and specify the client name (e.g., `Demon client`).
+   - Ensure the client is **enabled**.
+
+   Example Screenshot:
+
+   ![Client Basic Settings](./img/credentifalsFlow1.png)
+
+2. **Configure Grant Types**:
+   - In the **Grant Types** tab, select `client_credentials` as the allowed grant type.
+
+   Example Screenshot:
+
+   ![Grant Types](./img/credentifalsFlow2.png)
+
+3. **Set Allowed Scopes**:
+   - In the **Resources & Secrets** tab, specify the **Allowed Scopes** that the client can request. This ensures the application has access only to the APIs it needs.
+   - Example of allowed scopes:
+     - `rewardsApi.read`: For reading data from a specific API.
+
+   Example Screenshot:
+
+   ![Allowed Scopes](./img/credentifalsFlow3.png)
+
+4. **Set Client Secrets**:
+   - Enable the **Require Client Secret** option and click **Manage Client Secrets** to add and securely store the secret for the client.
+
+   Example Screenshot:
+
+   ![Client Secrets](./img/credentifalsFlow4.png)
+
+---
+
+#### Implementing the Flow in a Console Application:
+
+The following code demonstrates how to implement the **Client Credentials Flow** in a .NET console application:
+
+```csharp
+using IdentityModel.Client;
+using System.Net.Http;
+using System.Threading.Tasks;
+
+public class Program
+{
+    public static async Task Main(string[] args)
+    {
+        // Discover endpoints from metadata
+        var client = new HttpClient();
+        var discoveryDocument = await client.GetDiscoveryDocumentAsync("https://localhost:44310/");
+        if (discoveryDocument.IsError)
+        {
+            Console.WriteLine(discoveryDocument.Error);
+            return;
+        }
+
+        // Request access token
+        var tokenResponse = await client.RequestClientCredentialsTokenAsync(new ClientCredentialsTokenRequest
+        {
+            Address = discoveryDocument.TokenEndpoint,
+            ClientId = "client_id_demon",
+            ClientSecret = "client_secret_demon",
+            Scope = "rewardsApi.read"
+        });
+
+        if (tokenResponse.IsError)
+        {
+            Console.WriteLine(tokenResponse.Error);
+            return;
+        }
+
+        Console.WriteLine(tokenResponse.Json);
+
+        // Call the API
+        var apiClient = new HttpClient();
+        apiClient.SetBearerToken(tokenResponse.AccessToken);
+
+        var response = await apiClient.GetAsync("https://localhost:7019/api/rewards");
+        if (response.IsSuccessStatusCode)
+        {
+            var content = await response.Content.ReadAsStringAsync();
+            Console.WriteLine(content);
+        }
+        else
+        {
+            Console.WriteLine($"Error: {response.StatusCode}");
+        }
+    }
+}
+```
+
+#### Explanation of the Code:
+1. **Discovery Document**:
+   - Retrieves metadata about the IdentityServer, such as the token endpoint.
+2. **Token Request**:
+   - Sends a request to the token endpoint with the client credentials and requested scope.
+3. **API Call**:
+   - Uses the obtained access token to authenticate the API request.
+
+---
+
+### Key Considerations for Client Credentials Flow:
+1. **Use Cases**:
+   - Suitable for server-to-server communication.
+   - Not intended for scenarios involving user authentication.
+2. **Security**:
+   - Protect client secrets securely, as they grant access to the API.
+3. **Token Scope**:
+   - Ensure the requested scopes are aligned with the client's permissions.
+
+---
 
 
 ## 📖 Additional Resources
