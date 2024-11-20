@@ -284,6 +284,8 @@ export default userManager;
 1. **Security**: The Implicit Flow is considered less secure than Authorization Code Flow because tokens are exposed in the browser's address bar. Consider using **PKCE** (Proof Key for Code Exchange) if possible.
 2. **Browser-Specific Implementation**: Silent token renewal may require specific settings (e.g., third-party cookies enabled).
 
+> **⚠️ Warning:** The Implicit Flow is generally considered less secure than the Authorization Code Flow with PKCE. Tokens are exposed in the browser's address bar, making them vulnerable to interception. It is recommended to use the Authorization Code Flow with PKCE for enhanced security whenever possible.
+
 
 
 ## 📖 Additional Resources
