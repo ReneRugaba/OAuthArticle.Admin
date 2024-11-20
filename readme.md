@@ -117,7 +117,7 @@ OAuthArticle.Admin
 
    Example Screenshot:
 
-   ![Grant Types](./img/clientcodeflow1.png)
+   ![Grant Types](./img/clientcodeflow2.png)
 
 3. **Set Allowed Scopes**:
    - In the **Resources & Secrets** tab, specify the **Allowed Scopes** that the client can request. This ensures the application has access only to the APIs and user data it needs.
@@ -128,7 +128,7 @@ OAuthArticle.Admin
 
    Example Screenshot:
 
-   ![Allowed Scopes and Secrets](./img/clientcodeflow2.png)
+   ![Allowed Scopes and Secrets](./img/clientcodeflow1.png)
 
 4. **Configure Client Secrets**:
    - Enable the **Require Client Secret** option to ensure the client authenticates itself when exchanging the authorization code for an access token.
