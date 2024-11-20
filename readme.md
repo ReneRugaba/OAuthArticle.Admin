@@ -228,7 +228,7 @@ app.Run();
 
    Example Screenshot:
 
-   ![Grant Types](./img/implicitcodeflow3.png)
+   ![Grant Types](./img/implicitcodeflow4.png)
 
 3. **Set Allowed Scopes**:
    - In the **Resources & Secrets** tab, specify the **Allowed Scopes** that the client can request. This ensures the application has access only to the APIs and user data it needs.
