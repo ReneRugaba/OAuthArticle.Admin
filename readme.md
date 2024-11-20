@@ -4,6 +4,9 @@
 
 To emphasize the core principles of OAuth 2.0, I chose **Skoruba Duende IdentityServer** as the foundation, enabling a focused exploration of this protocol in a real-world context. If you prefer a solution without the admin project, you can simply create a new **Duende IdentityServer** solution without the administrative interface. You can find the documentation [here](https://docs.duendesoftware.com/identityserver/v7).
 
+
+> **ℹ️ Note:** Before you proceed, you might want to read my article, `Comprendre la norme OAuth 2.0`, which provides an in-depth understanding of the OAuth 2.0 protocol. If you haven't read it yet, you can do so now or continue with this practical example.
+
 ---
 
 ## 🛠️ Key Features
