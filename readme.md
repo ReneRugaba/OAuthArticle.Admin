@@ -211,8 +211,79 @@ app.Run();
 - `UsePkce` enforces security by enabling Proof Key for Code Exchange.
 
 ---
+### Implicit Flow
 
-### Implicit code flow
+#### Using Admin UI:
+1. **Create a client application**:
+   - Navigate to the **Admin UI** and create a new client.
+   - Assign a unique **Client ID** (e.g., `client_id_implicit`) and specify the client name (e.g., `clientImplicit`).
+   - Ensure the client is **enabled**.
+
+   Example Screenshot:
+
+   ![Client Basic Settings](./img/implicitcodeflow2.png)
+
+2. **Configure Grant Types**:
+   - In the **Grant Types** tab, select `implicit` as the allowed grant type.
+
+   Example Screenshot:
+
+   ![Grant Types](./img/implicitcodeflow3.png)
+
+3. **Set Allowed Scopes**:
+   - In the **Resources & Secrets** tab, specify the **Allowed Scopes** that the client can request. This ensures the application has access only to the APIs and user data it needs.
+   - Example of allowed scopes:
+     - `rewardsApi.read`: For reading data from a specific API.
+     - `openid`: For OpenID Connect authentication.
+     - `profile`: To include user profile information.
+
+   Example Screenshot:
+
+   ![Allowed Scopes](./img/implicitcodeflow3.png)
+
+4. **Set Client Details**:
+   - Provide **Redirect URIs** to specify where the authorization server sends responses after authentication. Also, configure the **Post-Logout Redirect URIs** for user redirection after logout.
+
+---
+
+#### Configuring the Client in React:
+
+Below is an example React configuration using the `oidc-client` library for implementing the Implicit Flow.
+
+```javascript
+import { UserManager } from 'oidc-client';
+
+const config = {
+  authority: 'https://localhost:44310', // IdentityServer URL
+  client_id: 'client_id_implicit', // Registered Client ID
+  redirect_uri: 'http://localhost:3000/callback', // Redirect URI after login
+  response_type: 'id_token token', // Response type for Implicit Flow
+  scope: 'rewardsApi.read openid', // Requested scopes
+  post_logout_redirect_uri: 'http://localhost:3000', // Redirect URI after logout
+  automaticSilentRenew: true, // Automatically renew tokens in the background
+  silent_redirect_uri: 'http://localhost:3000/silent-renew.html', // Silent renew URI
+};
+
+const userManager = new UserManager(config);
+
+export default userManager;
+```
+
+#### Explanation of Configuration:
+- **authority**: URL of the IdentityServer.
+- **client_id**: Matches the client registered in the IdentityServer.
+- **redirect_uri**: URL where the authorization server sends responses after authentication.
+- **response_type**: Specifies the Implicit Flow (`id_token` and `token`).
+- **scope**: Defines the API and user information that the client can access.
+- **silent_redirect_uri**: A page used to silently renew tokens in the background.
+- **post_logout_redirect_uri**: Redirects users after logout.
+
+---
+
+#### Key Considerations for Implicit Flow:
+1. **Security**: The Implicit Flow is considered less secure than Authorization Code Flow because tokens are exposed in the browser's address bar. Consider using **PKCE** (Proof Key for Code Exchange) if possible.
+2. **Browser-Specific Implementation**: Silent token renewal may require specific settings (e.g., third-party cookies enabled).
+
 
 
 ## 📖 Additional Resources
